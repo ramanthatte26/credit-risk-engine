@@ -1,7 +1,3 @@
-Below is a **precise, industry-aligned functional specification written in plain English**, suitable for a design document, interview discussion, or project README. Nothing is omitted. Nothing is watered down. This reflects **how real FinTech underwriting microservices are defined at the start of a project**.
-
----
-
 ## 1. What This System Does
 
 This system is a **backend credit risk evaluation microservice**.
@@ -832,3 +828,108 @@ This separation ensures:
 - This failure strategy is **frozen**
 - Any change requires a versioned update
 - Downstream services must rely on this behavior
+
+
+### Day 4 - Task 2 (Rule Output Contract)
+## Rule Output Contract (STRICT)
+
+This section defines the **standard output format** for every underwriting rule in the system.
+
+Each rule evaluates a valid financial profile (via derived metrics) and returns **its independent opinion**.
+
+Rules do not:
+- Know the final score
+- Know approval or rejection status
+- Mutate any input data
+- Depend on other rules
+
+They only express **impact** and **reason**.
+
+---
+
+### What a Rule Returns
+
+Each rule returns a **RuleResult** containing exactly two elements:
+
+---
+
+### 1️⃣ Score Impact
+
+**Definition**  
+The numerical effect this rule has on the overall credit score.
+
+**Characteristics**
+- Integer value
+- Can be **positive**, **negative**, or **zero**
+- Fixed and deterministic for a given condition
+
+**Interpretation**
+- Positive value → reduces perceived risk
+- Negative value → increases perceived risk
+- Zero → neutral impact
+
+**Important Constraints**
+- A rule never computes the final score
+- A rule never sees other rules’ impacts
+- A rule only declares *its own* impact
+
+**Examples**
+- `+80` → strong positive signal
+- `-100` → significant risk signal
+- `0` → informational / no impact
+
+---
+
+### 2️⃣ Reason (Human-Readable Explanation)
+
+**Definition**  
+A clear English sentence explaining **why** the rule produced its score impact.
+
+**Purpose**
+- Regulatory explainability
+- Customer transparency
+- Debugging and auditability
+
+**Characteristics**
+- Plain English
+- Non-technical
+- References the **metric condition**, not internal logic
+- Explains *why risk changes*, not just *what value exists*
+
+**Must NOT**
+- Mention score totals
+- Mention approval or rejection
+- Mention internal thresholds explicitly unless meaningful to humans
+
+**Examples**
+- “Debt-to-income ratio is above 50%, indicating high existing debt burden”
+- “Disposable income is low, leaving limited buffer for new repayments”
+- “Long credit history indicates stable borrowing behavior”
+
+---
+
+### Rule Output Example (Conceptual)
+
+Impact: `-100`  
+Reason: `"Debt-to-income ratio above 50%"`
+
+---
+
+### Rule Purity Guarantee
+
+Every rule must be:
+- **Pure** (no side effects)
+- **Deterministic** (same input → same output)
+- **Read-only** (never mutates metrics or profile)
+
+Rules express opinions.  
+Aggregation and decisions happen later.
+
+---
+
+### Design Principle (Non-Negotiable)
+
+> **Rules do not decide outcomes.  
+They only contribute signals.**
+
+This contract is frozen and must be followed by all current and future rules.
