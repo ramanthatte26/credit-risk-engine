@@ -543,3 +543,292 @@ No business rules
 No scoring logic  
 No derived metric calculations  
 No side effects
+
+## Derived Financial Metrics
+
+This section defines the **derived financial metrics** used by the credit risk engine.  
+These metrics are calculated from raw user inputs and represent the **true risk indicators** used in underwriting.
+
+In real-world lending systems:
+- Raw inputs are never used directly for decisions
+- Decisions are always based on derived, normalized metrics
+- Metrics must be mathematically clear, explainable, and reusable
+
+---
+
+### 1. Debt-to-Income Ratio (DTI)
+
+**Definition**  
+Debt-to-Income Ratio measures the percentage of a borrower’s income that is already committed to existing debt obligations.
+
+**Formula**  
+DTI = (Total Monthly EMIs / Monthly Income) × 100
+
+**Why it matters**
+- Indicates how much financial capacity is already consumed by debt
+- High DTI leaves little room for new repayment obligations
+- One of the most widely used affordability metrics across banks and FinTech lenders
+
+**Industry Thresholds**
+- **< 30%** → Healthy debt load
+- **30% – 50%** → Elevated risk, careful review required
+- **> 50%** → High risk, borrower likely over-leveraged
+
+**Why higher DTI = higher risk**
+- Less disposable income remains for unexpected expenses
+- Higher probability of missed payments under stress
+- Strong correlation with default rates in credit portfolios
+
+---
+
+### 2. Disposable Income
+
+**Definition**  
+Disposable income represents the amount of money remaining after all mandatory monthly obligations are met.
+
+**Formula**  
+Disposable Income = Monthly Income − (Monthly Expenses + Total Monthly EMIs)
+
+**Why negative disposable income is dangerous**
+- Indicates the borrower is already spending more than they earn
+- Any additional loan increases financial strain immediately
+- Repayment would depend on external support or future income assumptions
+
+**Why this is a red-flag metric**
+- Negative or very low disposable income signals unsustainable finances
+- Often used as an automatic rejection or hard-stop condition
+- Independent of credit score or past behavior
+
+Disposable income directly reflects **real repayment capacity**, not historical behavior.
+
+---
+
+### 3. Loan-to-Income Ratio (LTI)
+
+**Definition**  
+Loan-to-Income Ratio measures the size of the requested loan relative to the borrower’s annual income.
+
+**Formula**  
+LTI = Requested Loan Amount / Annual Income
+
+**Why annual income is used**
+- Loan obligations typically span multiple years
+- Annual income provides a stable baseline for long-term exposure assessment
+- Aligns loan size with realistic earning capacity over time
+
+**Why over-borrowing is risky**
+- Large loans relative to income increase loss severity
+- Higher chance of default during income disruption
+- Indicates potential misalignment between borrower expectations and affordability
+
+LTI helps detect **exposure risk**, even when monthly affordability appears acceptable.
+
+---
+
+### Summary
+
+Derived financial metrics:
+- Normalize raw input data
+- Enable fair comparison across borrowers
+- Form the foundation for all downstream risk scoring and decisions
+
+If these metrics are incorrect or poorly defined, **all credit decisions become unreliable**.
+
+## Derived Financial Metrics — Calculation Rules (STRICT)
+
+This section defines the **exact calculation rules** for all derived financial metrics used in the system.
+
+These rules are:
+- Deterministic
+- Non-negotiable
+- Version-locked
+
+Any change to these rules requires a **formal version update**, as downstream scoring and decisions depend on them.
+
+---
+
+### 1️⃣ Debt-to-Income Ratio (DTI) — Calculation Rules
+
+**Preconditions**
+- Monthly income **must be greater than 0**
+- If monthly income is 0 or invalid, metric computation must fail immediately
+
+**Formula**
+DTI = (Total Monthly EMIs / Monthly Income) × 100
+
+**Precision Rule**
+- DTI is calculated using **decimal arithmetic**
+- Precision: **2 decimal places**
+- Rounding mode: **HALF_UP**
+
+**Post-conditions**
+- DTI must be a finite numeric value
+- DTI is expressed as a **percentage**, not a ratio
+
+**Interpretation Note**
+Higher DTI indicates a higher proportion of income already committed to debt, increasing credit risk.
+
+---
+
+### 2️⃣ Disposable Income — Calculation Rules
+
+**Formula**
+Disposable Income = Monthly Income − (Monthly Expenses + Total Monthly EMIs)
+
+**Precision Rule**
+- Calculated using **decimal arithmetic**
+- Precision: **2 decimal places**
+- Rounding mode: **HALF_UP**
+
+**Post-conditions**
+- Disposable income may be **positive, zero, or negative**
+- All three cases are meaningful and must be preserved
+
+**Risk Signaling Rules**
+- **Negative disposable income**
+   - Indicates unsustainable financial profile
+   - Must be flagged as a **critical risk signal**
+- **Zero disposable income**
+   - Indicates no buffer for repayment stress
+   - Must be treated as **extreme caution**
+
+Disposable income directly reflects real repayment capacity and must never be ignored.
+
+---
+
+### 3️⃣ Loan-to-Income Ratio (LTI) — Calculation Rules
+
+**Preconditions**
+- Annual income **must never be zero**
+- Annual income is derived from monthly income
+
+**Annual Income Formula**
+Annual Income = Monthly Income × 12
+
+**Loan-to-Income Formula**
+Loan-to-Income Ratio = Requested Loan Amount / Annual Income
+
+**Precision Rule**
+- Calculated using **decimal arithmetic**
+- Precision: **2 decimal places**
+- Rounding mode: **HALF_UP**
+
+**Post-conditions**
+- LTI must be a finite numeric value
+- LTI is expressed as a **ratio**, not a percentage
+
+**Interpretation Note**
+Higher LTI indicates higher exposure relative to earning capacity, increasing loss severity risk.
+
+---
+
+### Rule Stability Guarantee
+
+- These calculation rules are **frozen**
+- All scoring, rules, and decisions must rely on these definitions
+- Incorrect or inconsistent metric calculations invalidate the entire risk model
+
+Metric correctness is **non-negotiable**.
+
+
+## Derived Financial Metrics — Failure Strategy (STRICT)
+
+This section defines how the system handles **invalid or impossible financial profiles** during metric computation.
+
+In real underwriting systems:
+- Impossible profiles are rejected **early**
+- Such profiles are not scored
+- Such profiles are not classified as “high risk”
+- They are treated as **invalid input**, not risky input
+
+This system follows the same principle.
+
+---
+
+### Chosen Strategy
+
+✅ **Reject with exception (Fail Fast)**
+
+Invalid profiles are rejected **during metric computation**, before any scoring or decision logic is invoked.
+
+They are **not** passed downstream as high-risk cases.
+
+---
+
+### Failure Conditions and System Behavior
+
+#### 1️⃣ Monthly Income = 0
+
+**Reason**
+- Division by income is required for DTI and LTI
+- Zero income makes metric computation mathematically impossible
+
+**System Action**
+- Immediately reject the profile
+- Throw a validation / computation exception
+- Stop further processing
+
+**Rationale**
+A borrower with zero income cannot be evaluated for affordability.
+
+---
+
+#### 2️⃣ Monthly Expenses > Monthly Income
+
+**Reason**
+- Indicates the borrower spends more than they earn
+- Disposable income becomes structurally negative
+
+**System Action**
+- Immediately reject the profile
+- Throw a validation / computation exception
+- Stop further processing
+
+**Rationale**
+This represents an unsustainable financial profile, not a risk tier.
+
+---
+
+#### 3️⃣ Total Monthly EMIs > Monthly Income
+
+**Reason**
+- Debt obligations exceed total income
+- DTI exceeds 100%, making affordability invalid
+
+**System Action**
+- Immediately reject the profile
+- Throw a validation / computation exception
+- Stop further processing
+
+**Rationale**
+Such a profile cannot support additional credit under any circumstances.
+
+---
+
+### Why Rejection Is Preferred Over “High Risk”
+
+- **High risk** implies the profile is valid but risky
+- These cases are **invalid**, not risky
+- Scoring invalid data corrupts model integrity
+- Early rejection simplifies downstream logic
+
+---
+
+### Design Principle
+
+> **Invalid data is rejected.  
+Valid but risky data is scored.**
+
+This separation ensures:
+- Mathematical correctness
+- Clean metric computation
+- Predictable system behavior
+- Regulatory defensibility
+
+---
+
+### Rule Stability Notice
+
+- This failure strategy is **frozen**
+- Any change requires a versioned update
+- Downstream services must rely on this behavior
