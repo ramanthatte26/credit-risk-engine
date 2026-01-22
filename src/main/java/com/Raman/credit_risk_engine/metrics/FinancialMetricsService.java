@@ -1,72 +1,64 @@
 package com.Raman.credit_risk_engine.metrics;
 
 import com.Raman.credit_risk_engine.entity.UserFinancialProfile;
+import com.Raman.credit_risk_engine.exception.RuleEvaluationException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+
 @Service
 public class FinancialMetricsService {
 
     private static final int SCALE = 2;
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
 
-    /**
-     * Public entry point.
-     * Computes all derived financial metrics for a valid user profile.
-     */
     public FinancialMetrics computeMetrics(UserFinancialProfile profile) {
 
         validateProfile(profile);
 
-        BigDecimal dti = computeDebtToIncomeRatio(
-                profile.getTotalMonthlyEmis(),
-                profile.getMonthlyIncome()
-        );
+        try {
+            BigDecimal dti = computeDebtToIncomeRatio(
+                    profile.getTotalMonthlyEmis(),
+                    profile.getMonthlyIncome()
+            );
 
-        BigDecimal disposableIncome = computeDisposableIncome(
-                profile.getMonthlyIncome(),
-                profile.getMonthlyExpenses(),
-                profile.getTotalMonthlyEmis()
-        );
+            BigDecimal disposableIncome = computeDisposableIncome(
+                    profile.getMonthlyIncome(),
+                    profile.getMonthlyExpenses(),
+                    profile.getTotalMonthlyEmis()
+            );
 
-        BigDecimal lti = computeLoanToIncomeRatio(
-                profile.getRequestedLoanAmount(),
-                profile.getMonthlyIncome()
-        );
+            BigDecimal lti = computeLoanToIncomeRatio(
+                    profile.getRequestedLoanAmount(),
+                    profile.getMonthlyIncome()
+            );
 
-        return new FinancialMetrics(dti, disposableIncome, lti);
+            return new FinancialMetrics(dti, disposableIncome, lti);
+
+        } catch (ArithmeticException ex) {
+            throw new RuleEvaluationException("Metric computation failed", ex);
+        }
     }
 
-    /**
-     * ----------------------------
-     * Validation (Fail Fast)
-     * ----------------------------
-     */
     private void validateProfile(UserFinancialProfile profile) {
 
         BigDecimal income = profile.getMonthlyIncome();
         BigDecimal expenses = profile.getMonthlyExpenses();
         BigDecimal emis = profile.getTotalMonthlyEmis();
 
-        if (income.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Monthly income must be greater than zero");
+        if (income == null || income.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuleEvaluationException("Monthly income must be greater than zero");
         }
 
         if (expenses.compareTo(income) > 0) {
-            throw new IllegalArgumentException("Monthly expenses cannot exceed monthly income");
+            throw new RuleEvaluationException("Monthly expenses exceed income");
         }
 
         if (emis.compareTo(income) > 0) {
-            throw new IllegalArgumentException("Total monthly EMIs cannot exceed monthly income");
+            throw new RuleEvaluationException("Monthly EMIs exceed income");
         }
     }
-
-    /**
-     * ----------------------------
-     * Metric Computations
-     * ----------------------------
-     */
 
     private BigDecimal computeDebtToIncomeRatio(
             BigDecimal totalMonthlyEmis,
@@ -92,11 +84,10 @@ public class FinancialMetricsService {
             BigDecimal requestedLoanAmount,
             BigDecimal monthlyIncome
     ) {
-        BigDecimal annualIncome = monthlyIncome
-                .multiply(BigDecimal.valueOf(12));
+        BigDecimal annualIncome = monthlyIncome.multiply(BigDecimal.valueOf(12));
 
         if (annualIncome.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Annual income must be greater than zero");
+            throw new RuleEvaluationException("Annual income must be positive");
         }
 
         return requestedLoanAmount

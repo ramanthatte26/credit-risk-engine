@@ -16,6 +16,9 @@ import com.Raman.credit_risk_engine.rule.RuleResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class CreditRiskEvaluationService {
 
@@ -66,7 +69,7 @@ public class CreditRiskEvaluationService {
         Decision decision =
                 riskDecisionService.determineDecision(riskLevel);
 
-        // 5️⃣ Persist CreditAssessment (final decision snapshot)
+        // 5️⃣ Persist CreditAssessment
         CreditAssessment assessment = new CreditAssessment();
         assessment.setCreditScore(finalScore);
         assessment.setRiskLevel(riskLevel);
@@ -75,7 +78,7 @@ public class CreditRiskEvaluationService {
         CreditAssessment savedAssessment =
                 creditAssessmentRepository.save(assessment);
 
-        // 6️⃣ Persist AssessmentAudit (rule-by-rule justification)
+        // 6️⃣ Persist AssessmentAudit entries
         for (RuleResult ruleResult : scoringResult.getRuleResults()) {
             AssessmentAudit audit = new AssessmentAudit();
             audit.setCreditAssessment(savedAssessment);
@@ -86,12 +89,18 @@ public class CreditRiskEvaluationService {
             assessmentAuditRepository.save(audit);
         }
 
-        // 7️⃣ Return API response (still no DB leakage)
+        // 7️⃣ Extract reasons for API response
+        List<String> reasons = scoringResult.getRuleResults()
+                .stream()
+                .map(RuleResult::getReason)
+                .collect(Collectors.toList());
+
+        // 8️⃣ Return API response
         return new CreditRiskResponseDTO(
                 finalScore,
                 riskLevel,
                 decision,
-                scoringResult.getReasons()
+                reasons
         );
     }
 
