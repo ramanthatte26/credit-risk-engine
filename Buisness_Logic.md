@@ -933,3 +933,215 @@ Aggregation and decisions happen later.
 They only contribute signals.**
 
 This contract is frozen and must be followed by all current and future rules.
+
+### Day 5 Task 1
+## Credit Scoring Model — Base Definition (STRICT)
+
+This section defines the **base scoring model** used by the credit risk engine.
+
+---
+
+### Base Score
+
+- The system starts with a **base credit score of 1000**
+- This base score represents a neutral starting point before applying any risk signals
+
+---
+
+### Rule Impact Application
+
+- Each underwriting rule produces a **score impact**
+- All rule impacts are:
+    - **Additive**
+    - Applied directly to the base score
+- There is no weighting, prioritization, or conditional ordering at this stage
+
+Final Score Formula (Conceptual):
+
+Final Score = Base Score + Σ (Rule Impacts)
+
+---
+
+### Determinism Guarantee
+
+- There is **no randomization** in scoring
+- No probabilistic adjustments
+- No time-based variance
+- No external dependencies
+
+Given the same input profile:
+- Derived metrics are identical
+- Rule evaluations are identical
+- Score aggregation is identical
+
+---
+
+### Core Scoring Principle
+
+**This system uses a deterministic, rule-based scoring model.**
+
+This ensures:
+- Explainability
+- Reproducibility
+- Regulatory defensibility
+- Debuggability
+
+---
+
+### Important Boundaries
+
+- Rules do NOT know:
+    - Base score
+    - Final score
+    - Risk classification
+- The scoring engine alone owns:
+    - Base score
+    - Score aggregation
+    - Final numeric outcome
+
+Any change to the base score or aggregation logic requires a versioned update.
+
+### Day 5 Task 3
+### Scoring Output Contract (INTERNAL, STRICT)
+Purpose
+
+The scoring output represents the final numeric outcome of the scoring engine after aggregating all rule opinions, along with full explainability.
+
+This structure is:
+
+Internal to the scoring layer
+
+Deterministic
+
+Auditable
+
+Designed to be consumed by later layers (risk classification, API response)
+
+What the Scoring Engine Returns
+
+The scoring engine returns a single immutable result containing exactly the following elements:
+
+1️⃣ Final Credit Score
+
+Definition
+The final numeric credit score after applying all rule impacts to the base score.
+
+Characteristics
+
+Integer value
+
+Deterministic
+
+Derived as:
+
+Final Score = Base Score + Sum of all Rule Impacts
+
+Important Notes
+
+This is a number only
+
+It does not imply approval, rejection, or risk category
+
+It is independent of presentation or API concerns
+
+2️⃣ Rule Reasons (Explainability)
+
+Definition
+A list of human-readable explanations produced by individual rules during evaluation.
+
+Characteristics
+
+Collection of strings
+
+Each entry corresponds to one rule’s opinion
+
+Order reflects rule evaluation order (no semantic priority implied)
+
+Purpose
+
+Transparency
+
+Auditability
+
+Debugging
+
+Regulatory explanation
+
+Important Notes
+
+Reasons are collected, not interpreted
+
+No filtering or summarization at this stage
+
+No decision language included
+
+Conceptual Structure (Pseudo-Representation)
+ScoringResult
+├── finalScore : int
+└── reasons    : List<String>
+
+Design Guarantees
+
+The scoring result:
+
+Contains no rule logic
+
+Contains no approval or rejection
+
+Contains no risk level
+
+It is a pure aggregation outcome
+
+Core Principle (Lock This In)
+
+Rules explain why.
+The scoring engine explains how much.
+Decisions come later.
+
+
+### Day 5 Task 4
+## Rule Execution Strategy
+
+All underwriting rules are executed using a **fixed, predefined order**.
+
+### Rule Storage
+- Rules are stored in an ordered list (`List<CreditRule>`)
+- The list preserves execution order for transparency and auditability
+
+### Execution Order
+Rules are evaluated in the following sequence:
+
+1. Income Stability Rule
+2. Debt-to-Income (DTI) Rule
+3. Past Loan Defaults Rule
+4. Credit History Length Rule
+5. Disposable Income Rule
+
+### Design Rationale
+- Fixed ordering ensures deterministic behavior
+- Reason ordering is predictable and explainable
+- Supports regulatory audits and interview justification
+- Although score aggregation is additive, explainability depends on order
+
+Any change to rule order must be treated as a versioned business logic change.
+
+## Special Red Flags — Disposable Income Handling
+
+Negative disposable income is treated as an **invalid financial profile**, not a risk tier.
+
+### Enforcement Strategy
+- If disposable income < 0:
+    - Metric computation fails immediately
+    - An exception is raised
+    - Scoring logic is not executed
+
+### Rationale
+- Negative disposable income indicates the borrower already spends more than they earn
+- Such profiles are mathematically invalid for affordability-based lending
+- Penalizing invalid data corrupts score integrity
+
+### Design Principle
+Invalid profiles are rejected early.  
+Valid but risky profiles are scored.
+
+This behavior is enforced at the metrics layer and must remain consistent across all downstream services.
