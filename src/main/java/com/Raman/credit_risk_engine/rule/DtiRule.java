@@ -15,6 +15,7 @@ public class DtiRule implements CreditRule {
 
         if (dti.compareTo(BigDecimal.valueOf(30)) < 0) {
             return new RuleResult(
+                    "DtiRule",
                     80,
                     "Low debt-to-income ratio indicates healthy debt levels"
             );
@@ -22,12 +23,14 @@ public class DtiRule implements CreditRule {
 
         if (dti.compareTo(BigDecimal.valueOf(50)) <= 0) {
             return new RuleResult(
+                    "DtiRule",
                     30,
                     "Moderate debt-to-income ratio indicates manageable risk"
             );
         }
 
         return new RuleResult(
+                "DtiRule",
                 -100,
                 "High debt-to-income ratio indicates heavy existing debt burden"
         );

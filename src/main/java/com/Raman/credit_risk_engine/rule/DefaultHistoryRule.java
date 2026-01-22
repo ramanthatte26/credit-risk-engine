@@ -14,6 +14,7 @@ public class DefaultHistoryRule implements CreditRule {
 
         if (defaults == 0) {
             return new RuleResult(
+                    "DefaultHistoryRule",
                     100,
                     "No past loan defaults indicate reliable repayment behavior"
             );
@@ -21,12 +22,14 @@ public class DefaultHistoryRule implements CreditRule {
 
         if (defaults == 1) {
             return new RuleResult(
+                    "DefaultHistoryRule",
                     -100,
                     "One past loan default indicates increased behavioral risk"
             );
         }
 
         return new RuleResult(
+                "DefaultHistoryRule",
                 -250,
                 "Multiple past loan defaults indicate high behavioral risk"
         );

@@ -16,12 +16,8 @@ public class CreditScoringService {
 
     private final List<CreditRule> rules;
 
-    /**
-     * Spring injects ALL CreditRule beans here.
-     * Order is deterministic based on bean registration.
-     */
     public CreditScoringService(List<CreditRule> rules) {
-        this.rules = List.copyOf(rules); // defensive, immutable
+        this.rules = rules;
     }
 
     public ScoringResult calculateScore(
@@ -29,14 +25,14 @@ public class CreditScoringService {
             FinancialMetrics metrics
     ) {
         int score = BASE_SCORE;
-        List<String> reasons = new ArrayList<>();
+        List<RuleResult> ruleResults = new ArrayList<>();
 
         for (CreditRule rule : rules) {
             RuleResult result = rule.evaluate(profile, metrics);
             score += result.getScoreImpact();
-            reasons.add(result.getReason());
+            ruleResults.add(result);
         }
 
-        return new ScoringResult(score, reasons);
+        return new ScoringResult(score, ruleResults);
     }
 }

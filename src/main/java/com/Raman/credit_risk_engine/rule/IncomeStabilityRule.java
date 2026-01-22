@@ -13,12 +13,14 @@ public class IncomeStabilityRule implements CreditRule {
 
         if (profile.getEmploymentType() == EmploymentType.SALARIED) {
             return new RuleResult(
+                    "IncomeStabilityRule",
                     50,
                     "Salaried employment provides stable income"
             );
         }
 
         return new RuleResult(
+                "IncomeStabilityRule",
                 20,
                 "Self-employed income considered moderately stable"
         );

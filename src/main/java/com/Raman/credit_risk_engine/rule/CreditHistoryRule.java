@@ -14,6 +14,7 @@ public class CreditHistoryRule implements CreditRule {
 
         if (historyMonths >= 36) {
             return new RuleResult(
+                    "CreditHistoryRule",
                     70,
                     "Long credit history improves predictability of borrower behavior"
             );
@@ -21,12 +22,14 @@ public class CreditHistoryRule implements CreditRule {
 
         if (historyMonths >= 12) {
             return new RuleResult(
+                    "CreditHistoryRule",
                     30,
                     "Moderate credit history provides some predictability"
             );
         }
 
         return new RuleResult(
+                "CreditHistoryRule",
                 -50,
                 "Short credit history reduces confidence in repayment behavior"
         );
