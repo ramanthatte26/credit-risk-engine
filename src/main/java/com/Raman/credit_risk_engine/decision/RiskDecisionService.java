@@ -1,11 +1,14 @@
 package com.Raman.credit_risk_engine.decision;
 
+import org.springframework.stereotype.Service;
+
 /**
  * Translates a final credit score into a risk level and business decision.
  *
  * This service does NOT perform scoring or rule evaluation.
  * It strictly maps score -> risk -> decision using fixed thresholds.
  */
+@Service
 public class RiskDecisionService {
 
     /**

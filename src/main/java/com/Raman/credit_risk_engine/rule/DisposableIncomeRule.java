@@ -2,9 +2,10 @@ package com.Raman.credit_risk_engine.rule;
 
 import com.Raman.credit_risk_engine.entity.UserFinancialProfile;
 import com.Raman.credit_risk_engine.metrics.FinancialMetrics;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-
+@Component
 public class DisposableIncomeRule implements CreditRule {
 
     @Override

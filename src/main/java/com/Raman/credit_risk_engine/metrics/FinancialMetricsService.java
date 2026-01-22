@@ -1,10 +1,11 @@
 package com.Raman.credit_risk_engine.metrics;
 
 import com.Raman.credit_risk_engine.entity.UserFinancialProfile;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-
+@Service
 public class FinancialMetricsService {
 
     private static final int SCALE = 2;
