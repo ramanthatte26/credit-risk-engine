@@ -1145,3 +1145,83 @@ Invalid profiles are rejected early.
 Valid but risky profiles are scored.
 
 This behavior is enforced at the metrics layer and must remain consistent across all downstream services.
+
+### Day 6 task 1
+## Risk Buckets & Decisions
+
+This section defines how a numeric credit score is translated into a risk category
+and how that risk category is converted into a business decision.
+
+This separation ensures that scoring remains objective while decisions remain policy-driven.
+
+### Risk Buckets
+
+The system classifies applicants into three risk buckets based on the final credit score:
+
+- **Score ≥ 750**
+    - Risk Level: LOW
+    - Decision: APPROVE
+
+- **Score 600–749**
+    - Risk Level: MEDIUM
+    - Decision: REVIEW
+
+- **Score < 600**
+    - Risk Level: HIGH
+    - Decision: REJECT
+
+These thresholds are deterministic and consistently applied across all evaluations.
+
+---
+
+### Why the REVIEW Category Exists
+
+Not all applicants fall cleanly into safe or unsafe categories.
+
+The REVIEW bucket exists to support:
+- Manual underwriting
+- Secondary verification
+- Human judgment on borderline cases
+
+Applicants in this range may have:
+- Mixed risk signals
+- Temporary financial stress
+- Limited credit history but strong income
+
+Automatic approval or rejection in such cases can increase false positives or false negatives.
+REVIEW allows institutions to balance risk control with business growth.
+
+---
+
+### Why Rejection Is Necessary for High Risk
+
+Applicants classified as HIGH risk demonstrate:
+- Unsustainable debt levels
+- Repeated negative credit behavior
+- Insufficient affordability buffers
+
+Approving such profiles exposes the lender to:
+- High default probability
+- Capital loss
+- Regulatory and portfolio risk
+
+Rejection at this stage protects:
+- The financial institution
+- The overall credit portfolio
+- The borrower from over-indebtedness
+
+High risk does not imply punishment; it reflects an inability to safely extend credit
+under current conditions.
+
+---
+
+### Design Principle
+
+- Scoring answers: **"How risky is this applicant?"**
+- Decisioning answers: **"What action should the business take?"**
+
+These concerns are intentionally separated to ensure:
+- Transparency
+- Auditability
+- Policy flexibility
+- Regulatory defensibility
