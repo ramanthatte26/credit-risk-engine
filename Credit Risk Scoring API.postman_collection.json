@@ -1,0 +1,135 @@
+{
+  "info": {
+    "_postman_id": "b812d758-2b19-4cce-a0e4-989dd72ec205",
+    "name": "Credit Risk Scoring API",
+    "description": "End-to-end test cases for Credit Risk Evaluation microservice.  \nCovers happy path, medium risk, high risk, and validation failures.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "41858726"
+  },
+  "item": [
+    {
+      "name": "Medium Risk Profile — REVIEW",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"monthlyIncome\": 60000,\r\n  \"monthlyExpenses\": 25000,\r\n  \"totalMonthlyEmis\": 32000,\r\n  \"pastLoanDefaults\": 3,\r\n  \"creditHistoryLengthMonths\": 18,\r\n  \"employmentType\": \"SELF_EMPLOYED\",\r\n  \"age\": 35,\r\n  \"requestedLoanAmount\": 500000\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/credit-risk/evaluate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "credit-risk",
+            "evaluate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Valid Profile — LOW Risk",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"monthlyIncome\": 100000,\r\n  \"monthlyExpenses\": 30000,\r\n  \"totalMonthlyEmis\": 5000,\r\n  \"pastLoanDefaults\": 0,\r\n  \"creditHistoryLengthMonths\": 48,\r\n  \"employmentType\": \"SALARIED\",\r\n  \"age\": 32,\r\n  \"requestedLoanAmount\": 300000\r\n}\r\n"
+        },
+        "url": {
+          "raw": "http://localhost:8080/credit-risk/evaluate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "credit-risk",
+            "evaluate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "High Risk Profile — REJECT",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"monthlyIncome\": 30000,\r\n  \"monthlyExpenses\": 27000,\r\n  \"totalMonthlyEmis\": 20000,\r\n  \"pastLoanDefaults\": 5,\r\n  \"creditHistoryLengthMonths\": 9,\r\n  \"employmentType\": \"SELF_EMPLOYED\",\r\n  \"age\": 29,\r\n  \"requestedLoanAmount\": 900000\r\n}\r\n"
+        },
+        "url": {
+          "raw": "http://localhost:8080/credit-risk/evaluate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "credit-risk",
+            "evaluate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Validation Error — Missing Income",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"monthlyExpenses\": 20000,\r\n  \"totalMonthlyEmis\": 5000,\r\n  \"pastLoanDefaults\": 0,\r\n  \"creditHistoryLengthMonths\": 24,\r\n  \"employmentType\": \"SALARIED\",\r\n  \"age\": 30,\r\n  \"requestedLoanAmount\": 300000\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/credit-risk/evaluate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "credit-risk",
+            "evaluate"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
