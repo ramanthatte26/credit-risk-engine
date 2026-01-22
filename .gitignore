@@ -1,10 +1,34 @@
-HELP.md
+################################
+# Environment & Secrets
+################################
+.env
+BUSINESS_LOGIC.md
+
+################################
+# Maven / Build
+################################
 target/
-.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+.mvn/wrapper/maven-wrapper.jar
 
-### STS ###
+################################
+# Logs
+################################
+*.log
+
+################################
+# IntelliJ IDEA
+################################
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+################################
+# Spring Tool Suite (STS)
+################################
 .apt_generated
 .classpath
 .factorypath
@@ -13,13 +37,9 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
+################################
+# NetBeans
+################################
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -29,5 +49,13 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+################################
+# VS Code
+################################
 .vscode/
+
+################################
+# OS files
+################################
+.DS_Store
+Thumbs.db
