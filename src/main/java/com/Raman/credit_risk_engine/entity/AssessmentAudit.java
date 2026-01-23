@@ -1,7 +1,7 @@
 package com.Raman.credit_risk_engine.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore; // Import this
 import jakarta.persistence.*;
-
 import java.time.Instant;
 
 @Entity
@@ -14,6 +14,7 @@ public class AssessmentAudit {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "credit_assessment_id", nullable = false)
+    @JsonIgnore // 🚨 CRITICAL: Prevents Infinite Recursion (StackOverflow)
     private CreditAssessment creditAssessment;
 
     @Column(name = "rule_name", nullable = false, length = 100)
@@ -33,45 +34,15 @@ public class AssessmentAudit {
         this.createdAt = Instant.now();
     }
 
-    // Getters & Setters
-
-    public Long getId() {
-        return id;
-    }
-
-    public CreditAssessment getCreditAssessment() {
-        return creditAssessment;
-    }
-
-    public void setCreditAssessment(CreditAssessment creditAssessment) {
-        this.creditAssessment = creditAssessment;
-    }
-
-    public String getRuleName() {
-        return ruleName;
-    }
-
-    public void setRuleName(String ruleName) {
-        this.ruleName = ruleName;
-    }
-
-    public Integer getScoreImpact() {
-        return scoreImpact;
-    }
-
-    public void setScoreImpact(Integer scoreImpact) {
-        this.scoreImpact = scoreImpact;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+    // Standard Getters & Setters
+    public Long getId() { return id; }
+    public CreditAssessment getCreditAssessment() { return creditAssessment; }
+    public void setCreditAssessment(CreditAssessment creditAssessment) { this.creditAssessment = creditAssessment; }
+    public String getRuleName() { return ruleName; }
+    public void setRuleName(String ruleName) { this.ruleName = ruleName; }
+    public Integer getScoreImpact() { return scoreImpact; }
+    public void setScoreImpact(Integer scoreImpact) { this.scoreImpact = scoreImpact; }
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
+    public Instant getCreatedAt() { return createdAt; }
 }
